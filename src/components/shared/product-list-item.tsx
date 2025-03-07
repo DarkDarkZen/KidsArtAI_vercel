@@ -1,15 +1,28 @@
-import type { Product } from "~/server/db/schema";
+"use client";
+
 import { api } from "~/trpc/react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardFooter } from "../ui/card";
-import { CartItem } from "~/server/db/schema";
 import { Button as UiButton, buttonVariants } from "../ui/button";
 import Image from "next/image";
-import { blurImage, cn, formatPrice } from "~/lib/utils";
+import { blurImage, cn } from "~/lib/utils";
 import { BookDashed, Minus, Plus, Trash } from "lucide-react";
 import { toast } from "sonner";
-import Link from "next/link";
-import posthog from "posthog-js";
+import type { InferSelectModel } from "drizzle-orm";
+import { cartItems, products } from "~/server/db/schema";
+
+type CartItem = InferSelectModel<typeof cartItems> & {
+  product: InferSelectModel<typeof products>;
+};
+
+type Product = InferSelectModel<typeof products> & {
+  link?: string;
+};
+
+interface ProductListItemProps {
+  product: Product;
+  single?: boolean;
+}
 
 const ProductImage: React.FC<{
   product: Product;
@@ -45,53 +58,33 @@ export const useProductActions = (product: Product) => {
   const utils = api.useUtils();
 
   const { data: cart } = api.shop.cart.useQuery();
-  const cartItem = cart?.find((item) => item.productId === product.id);
+  const cartItem = cart?.find((item: CartItem) => item.productId === product.id);
 
   const addToCart = api.shop.addToCart.useMutation({
     onError(error) {
       toast.error(`Failed to add to cart: ${error.message}`);
     },
     onSuccess: () => {
-      posthog.capture("add-to-cart", {
-        productId: product.id,
-        productName: product.name,
-        productPrice: product.price,
-      });
       void utils.shop.products.invalidate();
       void utils.shop.cart.invalidate();
     },
   });
   const removeFromCart = api.shop.removeFromCart.useMutation({
     onSuccess: () => {
-      posthog.capture("remove-from-cart", {
-        productId: product.id,
-        productName: product.name,
-        productPrice: product.price,
-      });
+      void utils.shop.products.invalidate();
+      void utils.shop.cart.invalidate();
     },
     onError(error) {
       toast.error(`Failed to remove from cart: ${error.message}`);
     },
-    onSettled: () => {
-      void utils.shop.products.invalidate();
-      void utils.shop.cart.invalidate();
-    },
   });
   const updateCartItem = api.shop.updateCartItem.useMutation({
     onSuccess: () => {
-      posthog.capture("update-cart-item", {
-        productId: product.id,
-        productName: product.name,
-        productPrice: product.price,
-        quantity: cartItem?.quantity,
-      });
+      void utils.shop.products.invalidate();
+      void utils.shop.cart.invalidate();
     },
     onError(error) {
       toast.error(`Failed to update cart item: ${error.message}`);
-    },
-    onSettled: () => {
-      void utils.shop.products.invalidate();
-      void utils.shop.cart.invalidate();
     },
   });
 
@@ -104,7 +97,7 @@ export const useProductActions = (product: Product) => {
 };
 
 const ProductItemActions: React.FC<{
-  product: Product & { link?: string };
+  product: Product;
 }> = ({ product }) => {
   const { cartItem, addToCart, removeFromCart, updateCartItem } =
     useProductActions(product);
@@ -173,7 +166,6 @@ const ProductItemActions: React.FC<{
                 e.stopPropagation();
                 return (window.location.href = product.link ?? "");
               }}
-              // href={product.link ?? ""}
               className={cn(buttonVariants({ variant: "default" }), "w-full")}
             >
               Instant Buy
@@ -198,11 +190,6 @@ const ProductItemActions: React.FC<{
     </div>
   );
 };
-
-interface ProductListItemProps {
-  product: Product;
-  single?: boolean;
-}
 
 export default function ProductListItem({ product, single }: ProductListItemProps) {
   const utils = api.useUtils();
