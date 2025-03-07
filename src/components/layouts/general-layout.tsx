@@ -32,7 +32,7 @@ const GeneralLayout = ({ children }: PropsWithChildren) => {
 
     setShouldShowAlert(`You've activated the code: ${start_param}`);
     return;
-  }, [user.activatedCodes, user?.usedCodes]);
+  }, [user?.activatedCodes, user?.usedCodes, user?.telegramId, start_param]);
 
   useEffect(() => {
     if (shouldShowAlert) {
