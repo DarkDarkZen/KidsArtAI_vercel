@@ -12,6 +12,7 @@ const TapPage = () => {
   const utils = api.useUtils();
   const { data: user } = api.tg.getUser.useQuery();
   const { data: topupLink } = api.tap.getTopupLink.useQuery();
+  const { data: _variables } = api.products.getProducts.useQuery();
 
   const { mutate: tap } = api.tap.add.useMutation({
     onMutate: async (variables) => {

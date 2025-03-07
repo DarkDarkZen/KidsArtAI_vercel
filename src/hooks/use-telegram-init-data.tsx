@@ -36,7 +36,7 @@ function useTelegramInitData() {
     }
 
     setData({ ...initData });
-  }, []);
+  }, [_initData]);
 
   useEffect(() => {
     if (data.user?.id) {

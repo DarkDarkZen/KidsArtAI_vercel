@@ -13,6 +13,7 @@ import superjson from "superjson";
 import { TelegramWebApps } from "telegram-webapps-types";
 import { ZodError } from "zod";
 import { env } from "~/env";
+import type { inferAsyncReturnType } from "@trpc/server";
 
 import { db } from "~/server/db";
 import { promocodes, users } from "../db/schema";

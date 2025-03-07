@@ -1,9 +1,9 @@
 import Image from "next/image";
 import {
-  Laptop,
-  Moon,
-  SunMedium,
-  Twitter,
+  // Laptop,
+  // Moon,
+  // SunMedium,
+  // Twitter,
   type LucideProps,
 } from "lucide-react";
 import { cn } from "~/lib/utils";

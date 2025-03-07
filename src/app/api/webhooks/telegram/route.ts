@@ -4,6 +4,7 @@ import { getBaseUrl } from "~/lib/utils";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
 import { bot } from "~/server/telegram";
+import type { NextRequest } from "next/server";
 
 const SECRET_HASH = "32e58fbahey833349df3383dc910e181";
 
