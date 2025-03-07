@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { api } from "~/trpc/react";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Button, buttonVariants } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
 import { PlusCircle } from "lucide-react";
@@ -12,10 +12,9 @@ const TapPage = () => {
   const utils = api.useUtils();
   const { data: user } = api.tg.getUser.useQuery();
   const { data: topupLink } = api.tap.getTopupLink.useQuery();
-  const { data: _variables } = api.shop.products.useQuery();
 
   const { mutate: tap } = api.tap.add.useMutation({
-    onMutate: async (variables) => {
+    onMutate: async (_variables) => {
       await utils.tg.getUser.cancel();
       const previousUser = utils.tg.getUser.getData();
       if (previousUser) {
@@ -26,7 +25,7 @@ const TapPage = () => {
       }
       return { previousUser };
     },
-    onError: (error, variables, context) => {
+    onError: (_error, _variables, context) => {
       if (context?.previousUser) {
         utils.tg.getUser.setData(undefined, context.previousUser);
       }

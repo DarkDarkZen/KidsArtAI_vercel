@@ -33,31 +33,47 @@ import { eq, sql } from "drizzle-orm";
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const initData = opts.headers.get("x-telegram-init-data");
-  if (!initData) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-  const data = Object.fromEntries(new URLSearchParams(initData));
-  const isValid = await isHashValid(data, env.TELEGRAM_BOT_TOKEN);
-
-  if (!isValid) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const webAppUser = JSON.parse(
-    data.user ?? "null",
-  ) as TelegramWebApps.WebAppUser;
-
-  const user = await chekOrCreateUser(webAppUser, data.start_param);
-
-  if (!user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  
+  // If no Telegram init data or missing bot token, return context without user
+  if (!initData || !env.TELEGRAM_BOT_TOKEN) {
+    return {
+      db,
+      ...opts,
+      user: null,
+    };
   }
 
-  return {
-    db,
-    ...opts,
-    user,
-  };
+  try {
+    const data = Object.fromEntries(new URLSearchParams(initData));
+    const isValid = await isHashValid(data, env.TELEGRAM_BOT_TOKEN);
+
+    if (!isValid) {
+      return {
+        db,
+        ...opts,
+        user: null,
+      };
+    }
+
+    const webAppUser = JSON.parse(
+      data.user ?? "null",
+    ) as TelegramWebApps.WebAppUser;
+
+    const user = await chekOrCreateUser(webAppUser, data.start_param);
+
+    return {
+      db,
+      ...opts,
+      user,
+    };
+  } catch (error) {
+    console.error("Error in TRPC context:", error);
+    return {
+      db,
+      ...opts,
+      user: null,
+    };
+  }
 };
 
 /**
@@ -178,7 +194,7 @@ const chekOrCreateUser = async (
         image: webAppUser.photo_url,
       })
       .returning()
-      .then((r) => r[0]);
+      .then((r: any[]) => r[0]);
   }
 
   if (promocode && user) {

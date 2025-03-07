@@ -1,15 +1,13 @@
 import { eq } from "drizzle-orm";
-import { Context } from "telegraf";
+import type { Context } from "telegraf";
 import { getBaseUrl } from "~/lib/utils";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
 import { bot } from "~/server/telegram";
-import type { NextRequest } from "next/server";
 
 const SECRET_HASH = "32e58fbahey833349df3383dc910e181";
 
 bot.on("message", async (ctx) => {
-  // echo the message
   await checkChatId(ctx);
   if ("text" in ctx.message) {
     await ctx.reply(ctx.message.text);
@@ -20,22 +18,12 @@ bot.on("message", async (ctx) => {
 
 bot.start(async (ctx) => {
   await checkChatId(ctx);
-
   await ctx.reply("Welcome to the bot!");
 });
 
 bot.on("callback_query", async (ctx) => {
   await ctx.answerCbQuery("👍");
-
   console.log("CB Query", ctx.update.callback_query);
-
-  const { data } = ctx.update.callback_query as { data: string };
-  const [type, id] = data.split(":") as [string, string];
-
-  /**
-   * Here we would handle the callback query
-   */
-
   await ctx.editMessageReplyMarkup({
     inline_keyboard: [],
   });
@@ -100,6 +88,7 @@ export const POST = async (req: Request) => {
 
   return new Response("OK");
 };
+
 async function checkChatId(ctx: Context) {
   const chatId = ctx.chat?.id;
   const userId = ctx.from?.id;
