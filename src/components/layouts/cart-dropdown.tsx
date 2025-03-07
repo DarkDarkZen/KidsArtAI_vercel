@@ -14,6 +14,12 @@ import { CreditCard, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cn } from "~/lib/utils";
+import type { InferSelectModel } from "drizzle-orm";
+import { cartItems, products } from "~/server/db/schema";
+
+type CartItem = InferSelectModel<typeof cartItems> & {
+  product: InferSelectModel<typeof products>;
+};
 
 export function CartDropdown() {
   const [open, setOpen] = useState(false);
@@ -30,42 +36,51 @@ export function CartDropdown() {
     }
   }, [open, cart?.length, getCartPaymentLink]);
 
+  if (!cart?.length) {
+    return null;
+  }
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="relative" size="icon">
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative"
+          aria-label="Shopping Cart"
+        >
           <ShoppingCart className="h-4 w-4" />
           <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 p-2 text-xs text-white">
-            {cart?.map((item) => item.quantity).reduce((a, b) => a + b, 0)}
+            {cart?.map((item: CartItem) => item.quantity).reduce((a: number, b: number) => a + b, 0)}
           </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
-          {cart?.length ? (
+          {cart?.length === 0 ? (
+            <p className="text-sm font-medium leading-none">Your cart</p>
+          ) : (
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
                 Cart total: ⭐{" "}
                 {cart
                   ?.map(
-                    (item) =>
+                    (item: CartItem) =>
                       (item.product.price - item.product.discount) *
                       item.quantity,
                   )
-                  .reduce((a, b) => a + b, 0)}
+                  .reduce((a: number, b: number) => a + b, 0)}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
-                {cart?.map((item) => item.quantity).reduce((a, b) => a + b, 0)}{" "}
+                {cart?.map((item: CartItem) => item.quantity).reduce((a: number, b: number) => a + b, 0)}{" "}
                 items
               </p>
             </div>
-          ) : (
-            <p className="text-sm font-medium leading-none">Your cart</p>
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <div className="flex flex-col space-y-4 px-2 py-2">
-          {cart?.map((item) => (
+          {cart?.map((item: CartItem) => (
             <Link
               key={item.id}
               href={`/product/${item.product.id}`}
