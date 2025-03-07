@@ -1,11 +1,9 @@
 "use client";
 
-import { ImageUpload } from "~/components/image-upload";
-
 export default function HomePage() {
   return (
-    <div className="container mx-auto flex min-h-screen flex-col items-center justify-center px-4">
-      <ImageUpload />
+    <div className="flex min-h-screen items-center justify-center">
+      <h1 className="text-2xl font-bold">Kids Art AI</h1>
     </div>
   );
 } 
