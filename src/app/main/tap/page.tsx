@@ -7,6 +7,10 @@ import { buttonVariants } from "~/components/ui/button";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
 import { PlusCircle } from "lucide-react";
+import type { InferSelectModel } from "drizzle-orm";
+import { users } from "~/server/db/schema";
+
+type User = InferSelectModel<typeof users>;
 
 const TapPage = () => {
   const utils = api.useUtils();
@@ -82,7 +86,7 @@ const Leaderboard = () => {
 
   return (
     <div className="mt-4 flex flex-col gap-2">
-      {leaderboard?.map((user) => {
+      {leaderboard?.map((user: User) => {
         const isCurrentUser = user.id === data?.id;
         return (
           <div key={user.id} className="flex items-center justify-between">
