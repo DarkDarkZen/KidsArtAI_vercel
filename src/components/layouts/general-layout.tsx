@@ -10,13 +10,11 @@ import { api } from "~/trpc/react";
 
 const GeneralLayout = ({ children }: PropsWithChildren) => {
   const { data: user } = api.tg.getUser.useQuery();
-
-  const [shouldShowAlert, setShouldShowAlert] = useState<string | null>(null);
   const { start_param, user: telegramUser } = useTelegramInitData();
+  const [shouldShowAlert, setShouldShowAlert] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.telegramId || !start_param) {
-      console.log("no user or start_param");
       return;
     }
 
@@ -31,7 +29,6 @@ const GeneralLayout = ({ children }: PropsWithChildren) => {
     }
 
     setShouldShowAlert(`You've activated the code: ${start_param}`);
-    return;
   }, [user?.activatedCodes, user?.usedCodes, user?.telegramId, start_param]);
 
   useEffect(() => {
@@ -42,8 +39,8 @@ const GeneralLayout = ({ children }: PropsWithChildren) => {
   }, [shouldShowAlert]);
 
   return (
-    <>
-      <div className="border-b">
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b">
         <div className="grid h-16 grid-cols-5 items-center bg-card px-4">
           <div className="col-span-2 flex items-center space-x-4">
             <Link href="/" className="col-span-2 lg:col-span-1">
@@ -59,21 +56,20 @@ const GeneralLayout = ({ children }: PropsWithChildren) => {
                 {telegramUser?.language_code}
               </p>
               <ThemeToggle />
-
               <CartDropdown />
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex">
-        <main className="w-full lg:border-l">
-          <div className="h-full max-w-full px-4 py-4 md:max-w-screen-lg lg:px-8">
+      <main className="flex flex-1">
+        <div className="w-full">
+          <div className="mx-auto h-full max-w-screen-lg px-4 py-4 lg:px-8">
             {children}
           </div>
-        </main>
-      </div>
-    </>
+        </div>
+      </main>
+    </div>
   );
 };
 
